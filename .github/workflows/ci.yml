@@ -47,7 +47,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: ${{ inputs.node-version }}
+          java-version: ${{ inputs.java-version }}
       - name: Install node.js packages
         run: npm install
       - name: Run backend test
