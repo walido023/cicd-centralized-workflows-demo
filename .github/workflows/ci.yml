@@ -21,12 +21,18 @@ on:
       sonar_projectKey:
         description: project key for sonar
         type: string
-        default: 'walido023_cicd-project-demo'      
+        default: 'walido023_cicd-project-demo'
+    secrets:
+      SONAR_TOKEN:
+        required: true          
 jobs:
-  pipeline CI:
-    name: Default CI pipeline
+  maven-pipeline-ci:
+    name: maven pipeline ci
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 90
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     env:
       NODE_VERSION: ${{ inputs.node-version }}
       SPRING_OUTPUT_ANSI_ENABLED: DETECT
