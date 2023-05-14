@@ -24,7 +24,9 @@ on:
         default: 'walido023_cicd-project-demo'
     secrets:
       SONAR_TOKEN:
-        required: true          
+        required: true
+      CODECOV_TOKEN:
+        required: true            
 jobs:
   maven-pipeline-ci:
     name: maven pipeline ci
@@ -56,6 +58,14 @@ jobs:
           npm run ci:backend:test
       - name: Run frontend test
         run: npm run ci:frontend:test
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage1.xml
+          #flags: unittests # optional
+          name: codecov-umbrella # optional
+          #fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)  
       - name: Analyze code with SonarQube
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -68,9 +78,24 @@ jobs:
           fi
       - name: Package application
         run: npm run java:jar:prod
+      # - id: auth
+      #   uses: google-github-actions/auth@v0.4.0
+      #   with:
+      #     token_format: "access_token"
+      #     create_credentials_file: true
+      #     activate_credentials_file: true
+      #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_ID }}
+      #     service_account: ${{ secrets.SERVICE_ACCOUNT }}
+      #     access_token_lifetime: '100s'
+      # - name: Login to Artifact Registry
+      #   uses: docker/login-action@v1
+      #   with:
+      #     registry: europe-west9-docker.pkg.dev
+      #     username: oauth2accesstoken
+      #     password: ${{ steps.auth.outputs.access_token }}
       # - name: Build and publish docker image
       #   if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       #   run: |
       #     GIT_TAG=:${GITHUB_REF#refs/tags/}
       #     DOCKER_TAG=${GIT_TAG#:refs/heads/main}
-      #     ./mvnw -ntp jib:build -Djib.to.image=jhipster/my-sephora-cicd-demo${DOCKER_TAG} -Djib.to.auth.username="${{ secrets.DOCKER_USERNAME }}" -Djib.to.auth.password="${{ secrets.DOCKER_PASSWORD }}" -Pprod
+      #     ./mvnw -ntp jib:build -Djib.to.image=europe-west9-docker.pkg.dev/s4a-cicd-poc-sbx-5b20/demo-repo/cicd-demo${DOCKER_TAG}  -Pprod
