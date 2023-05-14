@@ -1,4 +1,4 @@
-name: Pipeline CI
+name: Centralized Pipeline CI
 on:
   workflow_call:
     inputs:
@@ -39,7 +39,7 @@ on:
 jobs:
   maven-pipeline-ci:
     name: maven pipeline ci
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: 90
     permissions:
       contents: 'read'
