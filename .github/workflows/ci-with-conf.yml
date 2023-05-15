@@ -61,8 +61,8 @@ jobs:
       #     else
       #         echo No SONAR_TOKEN, skipping...
       #     fi
-      # - name: Package application
-      #   run: npm run java:jar:prod
+      - name: Package application
+        run: npm run java:jar:prod
       - id: auth
         uses: google-github-actions/auth@v0.4.0
         with:
