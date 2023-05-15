@@ -1,15 +1,6 @@
 name: Centralized Pipeline CI with json conf
 on:
   workflow_call:
-    inputs:
-      runs-on:
-        description: The Platform to execute on
-        type: string
-        default: ubuntu-latest
-      node-version:
-        description: The version of node to be used
-        type: string
-        default: "16.17.0" 
     secrets:
       SONAR_TOKEN:
         required: true
@@ -22,13 +13,13 @@ on:
 jobs:
   maven-pipeline-ci-json-conf:
     name: maven pipeline ci with json conf
-    runs-on: ${{ inputs.runs-on }}
+    runs-on: ${{ fromJson(steps.config.outputs.config).runs-on }}
     timeout-minutes: 90
     permissions:
       contents: 'read'
       id-token: 'write'
     env:
-      NODE_VERSION: ${{ inputs.node-version }}
+      NODE_VERSION: ${{ fromJson(steps.config.outputs.config).node-version }}
       SPRING_OUTPUT_ANSI_ENABLED: DETECT
       SPRING_JPA_SHOW_SQL: false
       JHI_DISABLE_WEBPACK_LOGS: true
@@ -46,20 +37,20 @@ jobs:
           java-version: ${{ fromJson(steps.config.outputs.config).java-version }}
       - name: Install node.js packages
         run: npm install
-      # - name: Run backend test
-      #   run: |
-      #     chmod +x mvnw
-      #     npm run ci:backend:test
-      # - name: Run frontend test
-      #   run: npm run ci:frontend:test
-      # - uses: codecov/codecov-action@v3
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     #files: ./coverage1.xml
-      #     #flags: unittests # optional
-      #     name: codecov-umbrella # optional
-      #     #fail_ci_if_error: true # optional (default = false)
-      #     verbose: true # optional (default = false)  
+      - name: Run backend test
+        run: |
+          chmod +x mvnw
+          npm run ci:backend:test
+      - name: Run frontend test
+        run: npm run ci:frontend:test
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          #files: ./coverage1.xml
+          #flags: unittests # optional
+          name: codecov-umbrella # optional
+          #fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)  
       - name: Analyze code with SonarQube
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
