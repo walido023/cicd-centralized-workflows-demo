@@ -1,0 +1,66 @@
+name: Centralized Pipeline CD with json conf
+on:
+  workflow_call:
+    # workflows: ["Pipeline CI"]
+    # branches: [main]
+    # types:
+    #   - completed
+    inputs:
+      runs-on:
+        description: The Platform to execute on
+        type: string
+        default: 'ubuntu-latest'
+      image_name:
+        description: image name
+        type: string
+        default: 'europe-west9-docker.pkg.dev/s4a-cicd-poc-sbx-5b20/demo-repo/cicd-demo'
+      serverless_vpc_connector:
+        description: Serverless VPC access connector
+        type: string
+        default: 'connecteur-sql-cloud'
+      cloudrun_region:
+        type: string
+        default: 'europe-west9'
+    secrets:
+      WORKLOAD_IDENTITY_PROVIDER_ID:
+        required: true
+      SERVICE_ACCOUNT:
+        required: true    
+jobs:
+  cd_cloudrun_pipeline_with_json_conf:
+    name: "cd cloudrun pipeline with json conf"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 90
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - id: config
+        run: echo "::set-output name=config::`jq -M -c '.' .github/workflow-config.json`"  
+      - id: auth
+        uses: google-github-actions/auth@v0.4.0
+        with:
+          token_format: "access_token"
+          create_credentials_file: true
+          activate_credentials_file: true
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_ID }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+          access_token_lifetime: '100s'
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.3.0
+      - name: set crdential_file
+        run: gcloud auth login --cred-file=${{steps.auth.outputs.credentials_file_path}}
+      - name: Run gcloud
+        run: gcloud run services list
+      - name: Deploy to Cloud Run
+        id: 'deploy'
+        uses: 'google-github-actions/deploy-cloudrun@v1'
+        with:
+          service: 'cicd-demo'
+          image: '${{ fromJson(steps.config.outputs.config).image_name }}:latest'
+          region: ${{ fromJson(steps.config.outputs.config).cloudrun_region }}
+          flags: '--allow-unauthenticated --vpc-connector ${{ fromJson(steps.config.outputs.config).serverless_vpc_connector }} --service-account=${{ secrets.SERVICE_ACCOUNT }}'
+      - name: 'Use output'
+        run: 'curl "${{ steps.deploy.outputs.url }}"'

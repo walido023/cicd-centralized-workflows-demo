@@ -11,7 +11,7 @@ on:
       SERVICE_ACCOUNT:
         required: true    
 jobs:
-  maven-pipeline-ci-json-conf:
+  maven_pipeline_ci_json_conf:
     name: maven pipeline ci with json conf
     runs-on: "ubuntu-latest"
     timeout-minutes: 90
@@ -75,7 +75,7 @@ jobs:
       - name: Login to Artifact Registry
         uses: docker/login-action@v1
         with:
-          registry: europe-west9-docker.pkg.dev
+          registry: ${{ fromJson(steps.config.outputs.config).artifact_registry }} 
           username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
       - name: Build and publish docker image
