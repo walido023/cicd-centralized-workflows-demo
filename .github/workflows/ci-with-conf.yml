@@ -13,13 +13,13 @@ on:
 jobs:
   maven-pipeline-ci-json-conf:
     name: maven pipeline ci with json conf
-    runs-on: ${{ fromJson(steps.config.outputs.config).runs-on }}
+    runs-on: "ubuntu-latest"
     timeout-minutes: 90
     permissions:
       contents: 'read'
       id-token: 'write'
     env:
-      NODE_VERSION: ${{ fromJson(steps.config.outputs.config).node-version }}
+      NODE_VERSION: "16.17.0"
       SPRING_OUTPUT_ANSI_ENABLED: DETECT
       SPRING_JPA_SHOW_SQL: false
       JHI_DISABLE_WEBPACK_LOGS: true
