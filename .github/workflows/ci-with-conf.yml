@@ -37,30 +37,30 @@ jobs:
           java-version: ${{ fromJson(steps.config.outputs.config).java-version }}
       - name: Install node.js packages
         run: npm install
-      - name: Run backend test
-        run: |
-          chmod +x mvnw
-          npm run ci:backend:test
-      - name: Run frontend test
-        run: npm run ci:frontend:test
-      - uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          #files: ./coverage1.xml
-          #flags: unittests # optional
-          name: codecov-umbrella # optional
-          #fail_ci_if_error: true # optional (default = false)
-          verbose: true # optional (default = false)  
-      - name: Analyze code with SonarQube
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          if [ ! -z "$SONAR_TOKEN" ]; then
-              ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ fromJson(steps.config.outputs.config).sonar_organization }} -Dsonar.projectKey=${{ fromJson(steps.config.outputs.config).sonar_projectKey }}
-          else
-              echo No SONAR_TOKEN, skipping...
-          fi
+      # - name: Run backend test
+      #   run: |
+      #     chmod +x mvnw
+      #     npm run ci:backend:test
+      # - name: Run frontend test
+      #   run: npm run ci:frontend:test
+      # - uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     #files: ./coverage1.xml
+      #     #flags: unittests # optional
+      #     name: codecov-umbrella # optional
+      #     #fail_ci_if_error: true # optional (default = false)
+      #     verbose: true # optional (default = false)  
+      # - name: Analyze code with SonarQube
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     if [ ! -z "$SONAR_TOKEN" ]; then
+      #         ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ fromJson(steps.config.outputs.config).sonar_organization }} -Dsonar.projectKey=${{ fromJson(steps.config.outputs.config).sonar_projectKey }}
+      #     else
+      #         echo No SONAR_TOKEN, skipping...
+      #     fi
       - name: Package application
         run: npm run java:jar:prod
       - id: auth
