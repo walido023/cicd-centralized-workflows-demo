@@ -1,4 +1,4 @@
-name: Centralized CI (react,node,java) Maven with json conf
+name: Centralized Pipeline CI (react,node,java) Maven
 on:
   workflow_call:
     secrets:

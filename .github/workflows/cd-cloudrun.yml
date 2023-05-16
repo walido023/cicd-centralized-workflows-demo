@@ -1,10 +1,6 @@
-name: Centralized Pipeline CD with json conf
+name: Centralized Pipeline CD To Cloudrun
 on:
   workflow_call:
-    # workflows: ["Pipeline CI"]
-    # branches: [main]
-    # types:
-    #   - completed
     secrets:
       WORKLOAD_IDENTITY_PROVIDER_ID:
         required: true
