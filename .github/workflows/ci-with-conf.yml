@@ -1,6 +1,15 @@
 name: Centralized CI (react,node,java) Maven with json conf
 on:
   workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
+      CODECOV_TOKEN:
+        required: true
+      WORKLOAD_IDENTITY_PROVIDER_ID:
+        required: true
+      SERVICE_ACCOUNT:
+        required: true    
 jobs:
 #JOB1: setup-install-and-test
   maven_setup_install_test:
@@ -37,12 +46,12 @@ jobs:
         run: npm run ci:frontend:test
       - uses: codecov/codecov-action@v3
         with:
-          token: ${{ fromJson(steps.config.outputs.config).CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
           name: codecov-umbrella
       - name: Analyze code with SonarQube
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ fromJson(steps.config.outputs.config).SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           if [ ! -z "$SONAR_TOKEN" ]; then
               ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ fromJson(steps.config.outputs.config).sonar_organization }} -Dsonar.projectKey=${{ fromJson(steps.config.outputs.config).sonar_projectKey }}
@@ -85,8 +94,8 @@ jobs:
           token_format: "access_token"
           create_credentials_file: true
           activate_credentials_file: true
-          workload_identity_provider:  ${{ fromJson(steps.config.outputs.config).WORKLOAD_IDENTITY_PROVIDER_ID }}
-          service_account: ${{ fromJson(steps.config.outputs.config).SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_ID }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
           access_token_lifetime: '100s'     
       - name: Login to Artifact Registry
         uses: docker/login-action@v1
