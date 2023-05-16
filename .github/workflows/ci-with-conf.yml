@@ -82,17 +82,19 @@ jobs:
       JHI_DISABLE_WEBPACK_LOGS: true
       NG_CLI_ANALYTICS: false
     steps:
-      - uses: actions/checkout@v3                
+      - uses: actions/checkout@v3
+      - id: config
+        run: echo "::set-output name=config::`jq -M -c '.' .github/workflow-config.json`"                
       - name: Analyze code with SonarQube
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ fromJson(steps.config.outputs.config).sonar_organization }} -Dsonar.projectKey=${{ fromJson(steps.config.outputs.config).sonar_projectKey }}
-          # if [ ! -z "$SONAR_TOKEN" ]; then
-          #     ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ fromJson(steps.config.outputs.config).sonar_organization }} -Dsonar.projectKey=${{ fromJson(steps.config.outputs.config).sonar_projectKey }}
-          # else
-          #     echo No SONAR_TOKEN, skipping...
-          # fi
+        run: |
+          if [ ! -z "$SONAR_TOKEN" ]; then
+              ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ fromJson(steps.config.outputs.config).sonar_organization }} -Dsonar.projectKey=${{ fromJson(steps.config.outputs.config).sonar_projectKey }}
+          else
+              echo No SONAR_TOKEN, skipping...
+          fi
 #JOB4: package application
   package_application:
     name:  package_application
@@ -148,5 +150,6 @@ jobs:
       #     GIT_TAG=:${GITHUB_REF#refs/tags/}
       #     DOCKER_TAG=${GIT_TAG#:refs/heads/main}
       #     ./mvnw -ntp jib:build -Djib.to.image=${{ fromJson(steps.config.outputs.config).image_name }}${DOCKER_TAG}  -Pprod
-      - run: chmod +x ci/build.sh   
-      - run: ./ci/build.sh
+      - run: |
+          chmod +x ci/build.sh   
+          ./ci/build.sh
