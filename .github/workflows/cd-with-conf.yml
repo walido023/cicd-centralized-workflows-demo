@@ -5,22 +5,6 @@ on:
     # branches: [main]
     # types:
     #   - completed
-    inputs:
-      runs-on:
-        description: The Platform to execute on
-        type: string
-        default: 'ubuntu-latest'
-      image_name:
-        description: image name
-        type: string
-        default: 'europe-west9-docker.pkg.dev/s4a-cicd-poc-sbx-5b20/demo-repo/cicd-demo'
-      serverless_vpc_connector:
-        description: Serverless VPC access connector
-        type: string
-        default: 'connecteur-sql-cloud'
-      cloudrun_region:
-        type: string
-        default: 'europe-west9'
     secrets:
       WORKLOAD_IDENTITY_PROVIDER_ID:
         required: true

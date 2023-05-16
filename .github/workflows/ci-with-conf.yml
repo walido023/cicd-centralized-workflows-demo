@@ -12,8 +12,8 @@ on:
         required: true    
 jobs:
 #JOB1: setup-install-and-test
-  maven_setup_install-test:
-    name:  maven_setup_install-test
+  maven_setup_install_test:
+    name:  maven_setup_install_test
     runs-on: "ubuntu-latest"
     timeout-minutes: 90
     permissions:
@@ -44,73 +44,24 @@ jobs:
           npm run ci:backend:test
       - name: Run frontend test
         run: npm run ci:frontend:test
-      - uses: actions/upload-artifact@v3
-        with:
-            name: my-artifact
-            path: ${{ github.workspace }}  
-#JOB2: Codecov
-  codecov:
-    name:  codecov
-    needs: [maven_setup_install-test]
-    runs-on: "ubuntu-latest"
-    timeout-minutes: 90
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    env:
-      NODE_VERSION: "16.17.0"
-      SPRING_OUTPUT_ANSI_ENABLED: DETECT
-      SPRING_JPA_SHOW_SQL: false
-      JHI_DISABLE_WEBPACK_LOGS: true
-      NG_CLI_ANALYTICS: false
-    steps:
-      - id: download
-        uses: actions/download-artifact@v2
-        with:
-          name: my-artifact
-          path: ${{ github.workspace }}
-      - run:  | 
-            echo ${{steps.download.outputs.download-path}}
-            ls -la ${{steps.download.outputs.download-path}}            
       - uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           name: codecov-umbrella
-          files: ${{steps.download.outputs.download-path}}/test-results
-          verbose: true
-#JOB3: Sonar
-  sonar:
-    name:  sonar
-    needs: [maven_setup_install-test]
-    runs-on: "ubuntu-latest"
-    timeout-minutes: 90
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    env:
-      NODE_VERSION: "16.17.0"
-      SPRING_OUTPUT_ANSI_ENABLED: DETECT
-      SPRING_JPA_SHOW_SQL: false
-      JHI_DISABLE_WEBPACK_LOGS: true
-      NG_CLI_ANALYTICS: false
-    steps:
-      - uses: actions/checkout@v3
-      - id: config
-        run: echo "::set-output name=config::`jq -M -c '.' .github/workflow-config.json`"                
       - name: Analyze code with SonarQube
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           if [ ! -z "$SONAR_TOKEN" ]; then
-              ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ fromJson(steps.config.outputs.config).sonar_organization }} -Dsonar.projectKey=${{ fromJson(steps.config.outputs.config).sonar_projectKey }}
+              ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ inputs.sonar_organization }} -Dsonar.projectKey=${{ inputs.sonar_projectKey }}
           else
               echo No SONAR_TOKEN, skipping...
-          fi
-#JOB4: package application
+          fi        
+#JOB2: package application
   package_application:
     name:  package_application
-    needs: [codecov,sonar]
+    needs: [maven_setup_install_test]
     runs-on: "ubuntu-latest"
     timeout-minutes: 90
     permissions:
@@ -134,7 +85,7 @@ jobs:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_ID }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
           access_token_lifetime: '100s'
-#JOB5: login to artifact registry and publish docker image 
+#JOB3: login to artifact registry and publish docker image 
   publish_to_registry:
     name:  publish_to_registry
     needs: [package_application]
@@ -156,12 +107,6 @@ jobs:
           registry: ${{ fromJson(steps.config.outputs.config).artifact_registry }} 
           username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
-      # - name: Build and publish docker image
-      #   #if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-      #   run: |
-      #     GIT_TAG=:${GITHUB_REF#refs/tags/}
-      #     DOCKER_TAG=${GIT_TAG#:refs/heads/main}
-      #     ./mvnw -ntp jib:build -Djib.to.image=${{ fromJson(steps.config.outputs.config).image_name }}${DOCKER_TAG}  -Pprod
       - run: |
           chmod +x ci/build.sh   
           ./ci/build.sh
