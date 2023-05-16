@@ -59,7 +59,8 @@ jobs:
       SPRING_JPA_SHOW_SQL: false
       JHI_DISABLE_WEBPACK_LOGS: true
       NG_CLI_ANALYTICS: false
-    steps:      
+    steps:
+      - uses: actions/checkout@v3      
       - uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -80,7 +81,8 @@ jobs:
       SPRING_JPA_SHOW_SQL: false
       JHI_DISABLE_WEBPACK_LOGS: true
       NG_CLI_ANALYTICS: false
-    steps:                
+    steps:
+      - uses: actions/checkout@v3                
       - name: Analyze code with SonarQube
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
