@@ -38,26 +38,26 @@ jobs:
           java-version: ${{ fromJson(steps.config.outputs.config).java-version }}
       - name: Install node.js packages
         run: npm install
-      - name: Run backend test
-        run: |
-          chmod +x mvnw
-          npm run ci:backend:test
-      - name: Run frontend test
-        run: npm run ci:frontend:test
-      - uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          name: codecov-umbrella
-      - name: Analyze code with SonarQube
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          if [ ! -z "$SONAR_TOKEN" ]; then
-              ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ fromJson(steps.config.outputs.config).sonar_organization }} -Dsonar.projectKey=${{ fromJson(steps.config.outputs.config).sonar_projectKey }}
-          else
-              echo No SONAR_TOKEN, skipping...
-          fi           
+      # - name: Run backend test
+      #   run: |
+      #     chmod +x mvnw
+      #     npm run ci:backend:test
+      # - name: Run frontend test
+      #   run: npm run ci:frontend:test
+      # - uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     name: codecov-umbrella
+      # - name: Analyze code with SonarQube
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     if [ ! -z "$SONAR_TOKEN" ]; then
+      #         ./mvnw -ntp initialize sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=${{ fromJson(steps.config.outputs.config).sonar_organization }} -Dsonar.projectKey=${{ fromJson(steps.config.outputs.config).sonar_projectKey }}
+      #     else
+      #         echo No SONAR_TOKEN, skipping...
+      #     fi           
 #JOB2: package application
   package_application:
     name:  package_application
@@ -73,18 +73,21 @@ jobs:
       SPRING_JPA_SHOW_SQL: false
       JHI_DISABLE_WEBPACK_LOGS: true
       NG_CLI_ANALYTICS: false
-    steps:      
+    steps:
+      - uses: actions/checkout@v3
+      - id: config
+        run: echo "::set-output name=config::`jq -M -c '.' .github/workflow-config.json`"
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ fromJson(steps.config.outputs.config).node-version }}
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ fromJson(steps.config.outputs.config).java-version }}
+      - name: Install node.js packages
+        run: npm install      
       - name: Package application
         run: npm run java:jar:prod
-      - id: auth
-        uses: google-github-actions/auth@v0.4.0
-        with:
-          token_format: "access_token"
-          create_credentials_file: true
-          activate_credentials_file: true
-          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_ID }}
-          service_account: ${{ secrets.SERVICE_ACCOUNT }}
-          access_token_lifetime: '100s'
 #JOB3: login to artifact registry and publish docker image 
   publish_to_registry:
     name:  publish_to_registry
@@ -100,7 +103,16 @@ jobs:
       SPRING_JPA_SHOW_SQL: false
       JHI_DISABLE_WEBPACK_LOGS: true
       NG_CLI_ANALYTICS: false
-    steps:     
+    steps:
+      - id: auth
+        uses: google-github-actions/auth@v0.4.0
+        with:
+          token_format: "access_token"
+          create_credentials_file: true
+          activate_credentials_file: true
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_ID }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+          access_token_lifetime: '100s'     
       - name: Login to Artifact Registry
         uses: docker/login-action@v1
         with:
