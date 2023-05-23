@@ -4,7 +4,7 @@ on:
     inputs:
       image_version:
         description: The version of the image to be deployed
-        type: string
+        type: choice
         option: ${GITHUB_REF#refs/tags/}
         default: latest
     secrets:
