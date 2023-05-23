@@ -5,7 +5,7 @@ on:
       image_version:
         description: The version of the image to be deployed
         type: choice
-        option: ${GITHUB_REF#refs/tags/}
+        options: ${GITHUB_REF#refs/tags/}
         default: latest
     secrets:
       WORKLOAD_IDENTITY_PROVIDER_ID:
