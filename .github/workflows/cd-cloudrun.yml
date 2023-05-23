@@ -2,23 +2,10 @@ name: Centralized Pipeline CD To Cloudrun
 on:
   workflow_call:
     inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-          - info
-          - warning
-          - debug
-      # image_version:
-      #   type: choice
-      #   description: The version of the image to be deployed
-      #   # options: ${GITHUB_REF#refs/tags/}
-      #   # default: latest   
-      #   options: 
-      #   - monalisa
-      #   - cschleiden
+      image_version:
+        type: string
+        description: The version of the image to be deployed
+        default: latest   
     secrets:
       WORKLOAD_IDENTITY_PROVIDER_ID:
         required: true
