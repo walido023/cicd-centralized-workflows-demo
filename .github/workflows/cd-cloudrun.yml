@@ -1,6 +1,12 @@
 name: Centralized Pipeline CD To Cloudrun
 on:
   workflow_call:
+    inputs:
+      image_version:
+        description: The version of the image to be deployed
+        type: string
+        option: ${GITHUB_REF#refs/tags/}
+        default: latest
     secrets:
       WORKLOAD_IDENTITY_PROVIDER_ID:
         required: true
@@ -39,7 +45,7 @@ jobs:
         uses: 'google-github-actions/deploy-cloudrun@v1'
         with:
           service: 'cicd-demo'
-          image: '${{ fromJson(steps.config.outputs.config).image_name }}:latest'
+          image: '${{ fromJson(steps.config.outputs.config).image_name }}:${{ inputs.image_version }}'
           region: ${{ fromJson(steps.config.outputs.config).cloudrun_region }}
           flags: '--allow-unauthenticated --vpc-connector ${{ fromJson(steps.config.outputs.config).serverless_vpc_connector }} --service-account=${{ secrets.SERVICE_ACCOUNT }}'
       - name: 'Use output'
